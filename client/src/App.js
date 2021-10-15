@@ -7,8 +7,8 @@ import "./App.css";
 function App()  {
   const [storageValue, setStorageValue] = useState(undefined);
   const [web3, setWeb3] = useState(undefined);
-  const [accounts, setAccounts] = useState([]);
-  const [contract, setContract] = useState([]);
+  const [accounts, setAccounts] = useState(undefined);
+  const [contract, setContract] = useState(undefined);
 
   useEffect(() => {
     const init = async() => {
@@ -39,9 +39,10 @@ function App()  {
         alert(
           `Failed to load web3, accounts, or contract. Check console for details.`,
         );
-        console.error(error);
+        //console.error(error);
       }
     }
+    init();
   }, []);
 
   useEffect(() => {
@@ -54,16 +55,16 @@ function App()  {
   
       // Update state with the result.
       setStorageValue(response);
+      
     }
       if(typeof web3 !== 'undefined'
-          && typeof accounts !== 'undefined'
-          && typeof contract !== 'undefined')
-          {
+          & typeof accounts !== 'undefined'
+          & typeof contract !== 'undefined'){            
             load();
           }
   }, [web3, accounts, contract]);
 
-  console.log(web3)
+  
 
   if(typeof web3 === 'undefined'){
     return <div>Loading Web3, accounts, and contract...</div>;
