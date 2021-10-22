@@ -20,8 +20,7 @@ contract PiggyBankFactory{
         PiggyBank newPiggyBank = new PiggyBank();
         require(address(newPiggyBank) != address(0), "El contrato debe desplegarse");
         _piggyAccountsCounter++; 
-        accounts[_piggyAccountsCounter] = newPiggyBank;
-        
+        accounts[_piggyAccountsCounter] = newPiggyBank;        
     }
 
     function getPiggyBankAddress(uint _piggyId) public view returns(PiggyBank){
