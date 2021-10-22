@@ -13,7 +13,7 @@ describe("PiggyBank", function(){
       });
       
       describe("Inicializacion", function(){
-        it('should accept ether', async function() {
+        it.skip('should accept ether', async function() {
           const tx = await deployer.sendTransaction({ to: this.contratoPiggy.address, value: ethers.utils.parseEther('1') });
           let balance = await ethers.provider.getBalance(this.contratoPiggy.address);
   
@@ -24,7 +24,7 @@ describe("PiggyBank", function(){
       });
 
       describe("Transfiere", function(){
-        it('comprueba el owner', async function() {
+        it.skip('comprueba el owner', async function() {
           const owner = await this.contratoPiggy.owner();
       
           expect(deployer.address).to.eq(owner);
@@ -34,7 +34,7 @@ describe("PiggyBank", function(){
         });
 
       describe("Withdraw ethers", function(){
-        it("should be the owner to withdraw ether", async function() {          
+        it.skip("should be the owner to withdraw ether", async function() {          
           await deployer.sendTransaction({to: this.contratoPiggy.address, value: ethers.utils.parseEther('5')})
 
           const contractFunds = await ethers.provider.getBalance(this.contratoPiggy.address);

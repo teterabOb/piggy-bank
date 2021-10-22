@@ -3,28 +3,33 @@ pragma solidity ^0.8.0;
 import "./PiggyBank.sol";
 
 contract PiggyBankFactory{
-    uint256 private _piggyAccountsCounter = 1;
+    uint256 private _piggyAccountsCounter;
+    
+    constructor(){
+        _piggyAccountsCounter = 0;
+    }
     
     struct PiggyAccounts{
         PiggyBank singlePiggyBank;
         uint amount;
     }
     
-    /*
-    struct PiggyAmounts{
-        address piggyAccount;
-        uint amountAccount;
-    }
-    */
+    mapping (uint256 => PiggyBank) private  accounts;
     
-    mapping (uint256 => PiggyAccounts) public _piggyBanks;
-    //mapping (uint256 => PiggyAmounts) public _piggyDetails;
-
-    function createPiggyBank() public returns(PiggyBank){
+    function createPiggyBank() public {
         PiggyBank newPiggyBank = new PiggyBank();
-        _piggyBanks[_piggyAccountsCounter] = PiggyAccounts(newPiggyBank, address(newPiggyBank).balance);
-        _piggyAccountsCounter++;
-        return newPiggyBank;
+        require(address(newPiggyBank) != address(0), "El contrato debe desplegarse");
+        _piggyAccountsCounter++; 
+        accounts[_piggyAccountsCounter] = newPiggyBank;
+        
+    }
+
+    function getPiggyBankAddress(uint _piggyId) public view returns(PiggyBank){
+        return accounts[_piggyId];
+    }
+    
+    function getPiggyQtyAccounts() public view returns(uint256){
+        return _piggyAccountsCounter;
     }
     
 }
