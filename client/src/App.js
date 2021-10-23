@@ -7,6 +7,8 @@ import "./App.css";
 
 function App()  {
   const [storageValue, setStorageValue] = useState(undefined);
+  const [piggyAccounts, setPiggyAccounts] = useState([]);
+  const [qtyAccounts, setQtyAccounts] = useState(0);
   const [web3, setWeb3] = useState(undefined);
   const [accounts, setAccounts] = useState(undefined);  
   const [bankContract, setBContract] = useState(undefined);
@@ -60,19 +62,8 @@ function App()  {
 
   useEffect(() => {
     const load = async () => {      
-      const QtyAccounts = await factoryContract.methods.getContador().call();
-      console.log(await QtyAccounts)
-
-
-      // Get the value from the contract to prove it worked.
-      //const response = await contract.methods.get().call();
-      //GetQtyAccounts()
-
-      IncreaseContador()
-
-      console.log(await QtyAccounts)
-      // Update state with the result.
-      setStorageValue(QtyAccounts);
+      GetQtyAccounts();
+      GetPiggyAccounts()
       
     }
       if(typeof web3 !== 'undefined'
@@ -85,10 +76,12 @@ function App()  {
 
   async function GetQtyAccounts(){
     const qty = await factoryContract.methods.getPiggyQtyAccounts().call();
-    console.log("la cantidad es " + await qty)
+    setQtyAccounts(qty)
+    return qty;
   }
 
   async function CreatePiggyAccount(){
+    GetPiggyAccounts()
     await factoryContract.methods.createPiggyBank().send({from: accounts[0]})
       .once('receipt', (receipt) => {
         console.log(receipt)
@@ -101,17 +94,18 @@ function App()  {
       });    
   }
 
-  async function IncreaseContador(){
-    await factoryContract.methods.setContador().send({from: accounts[0]})
-      .once('receipt', (receipt) => {
-        console.log(receipt)
-      })
-      .on('confirmation', (condNumber, receipt, latestBlockHash) => {
-        console.log(condNumber)
-      })
-      .on('error', (error) => {
-        console.log(error)
-      });    
+  async function GetPiggyAccounts(){
+    let qty = await GetQtyAccounts()    
+    console.log(await qty)
+
+    for (let i = 1; i < qty; i++) {
+      const piggy = await factoryContract.methods.getPiggyBankAddress(i).call()
+      const piggyBalance = await web3.eth.getBalance(piggy)
+      console.log(piggyBalance)
+      console.log(piggy)
+      
+    }
+
   }
 
   if(typeof web3 === 'undefined'){
@@ -120,19 +114,16 @@ function App()  {
 
   return (
     <div className="App">
-      <h1>Good to Go!</h1>
-      <p>Your Truffle Box is installed and ready.</p>
+      <h1>Piggy Bank</h1>
+      
       <h2>Smart Contract Example</h2>
-      <p>
-        If your contracts compiled and migrated successfully, below will show
-        a stored value of 5 (by default).
-      </p>
-      <p>
-        Try changing the value stored on <strong>line 42</strong> of App.js.
-      </p>
-      <div>The stored value is: {storageValue}</div>
 
+      <div>La cantidasd de cuentas creadas es: {qtyAccounts}</div>
 
+      <div className="container">
+  
+        <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+      </div>
     </div>
   );
 
