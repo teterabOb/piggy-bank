@@ -4,6 +4,8 @@ import PiggyBank from "./contracts/PiggyBank.json";
 import getWeb3 from "./getWeb3";
 
 import "./App.css";
+import PiggyContext from "./PiggyContext";
+import AccountsComponents from "./AccountsComponent";
 
 function App()  {
   const [storageValue, setStorageValue] = useState(undefined);
@@ -114,16 +116,18 @@ function App()  {
 
   return (
     <div className="App">
-      <h1>Piggy Bank</h1>
-      
-      <h2>Smart Contract Example</h2>
+      <PiggyContext.Provider value={{web3, accounts, factoryContract, bankContract}} >
+        <h1>Piggy Bank</h1>
+        
+        <h2>Smart Contract Example</h2>
 
-      <div>La cantidasd de cuentas creadas es: {qtyAccounts}</div>
-
-      <div className="container">
-  
-        <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
-      </div>
+        <div>La cantidasd de cuentas creadas es: {qtyAccounts}</div>
+        <AccountsComponents />
+        <div className="container">
+    
+          <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+        </div>
+      </PiggyContext.Provider>
     </div>
   );
 
