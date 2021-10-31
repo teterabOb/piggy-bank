@@ -6,26 +6,21 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 import PiggyContext from "./PiggyContext";
 import AccountsComponents from "./AccountsComponent";
+import ContactoComponents from "./ContactoComponent";
 
-function App()  {
-  const [storageValue, setStorageValue] = useState(undefined);
-  const [piggyAccounts, setPiggyAccounts] = useState([]);
-  const [qtyAccounts, setQtyAccounts] = useState(0);
+function App()  {  
+  const [qtyAccounts, setQtyAccounts] = useState(0);  
   const [web3, setWeb3] = useState(undefined);
   const [accounts, setAccounts] = useState(undefined);  
   const [bankContract, setBContract] = useState(undefined);
   const [factoryContract, setFContract] = useState(undefined);
+  const [piggyAccounts, setPiggyAccounts] = useState([]);
 
   useEffect(() => {
     const init = async() => {
       try {
-        // Get network provider and web3 instance.
         const web3 = await getWeb3();
-  
-        // Use web3 to get the user's accounts.
-        const accounts = await web3.eth.getAccounts();
-  
-        // Get the contract instance.
+        const accounts = await web3.eth.getAccounts();          
         const networkId = await web3.eth.net.getId();
 
         const deployedNetwork = PiggyBankFactory.networks[networkId];
@@ -40,16 +35,11 @@ function App()  {
           PiggyBank.abi,
           deployedNetwork2 && deployedNetwork2.address,
         );
-
-
   
-        // Set web3, accounts, and contract to the state, and then proceed with an
-        // example of interacting with the contract's methods.
         setWeb3(web3)
         setAccounts(accounts)        
         setBContract(bankContract)
-        setFContract(factoryContract)
-        
+        setFContract(factoryContract)       
         
       } catch (error) {
         // Catch any errors for any of the above operations.
@@ -63,9 +53,26 @@ function App()  {
   }, []);
 
   useEffect(() => {
-    const load = async () => {      
-      GetQtyAccounts();
-      GetPiggyAccounts()
+    const load = async() => {        
+      const qty = await factoryContract.methods.getPiggyQtyAccounts().call();            
+      setQtyAccounts(qty) 
+   
+      let piggyAccountsWithAmount = []
+
+    
+      for (let i = 1; i <= qty; i++) {
+        const piggy = await factoryContract.methods.getPiggyBankAddress(i).call()
+        const piggyBalance = await web3.eth.getBalance(piggy)   
+        
+        var jparse = JSON.stringify(PiggyBank.abi)   
+        var contract = new web3.eth.Contract(JSON.parse(jparse), piggy)
+
+        const owner = await contract.methods.owner().call()  
+        piggyAccountsWithAmount.push({address: piggy, balance: piggyBalance, owner: owner})   
+
+      }
+               
+      setPiggyAccounts(piggyAccountsWithAmount)     
       
     }
       if(typeof web3 !== 'undefined'
@@ -73,64 +80,88 @@ function App()  {
           && typeof bankContract !== 'undefined'
           && typeof factoryContract !== 'undefined'){            
             load();
+            
           }
   }, [web3, accounts, bankContract, factoryContract]);
 
-  async function GetQtyAccounts(){
-    const qty = await factoryContract.methods.getPiggyQtyAccounts().call();
-    setQtyAccounts(qty)
-    return qty;
-  }
-
   async function CreatePiggyAccount(){
-    GetPiggyAccounts()
     await factoryContract.methods.createPiggyBank().send({from: accounts[0]})
       .once('receipt', (receipt) => {
-        console.log(receipt)
+        
       })
       .on('confirmation', (condNumber, receipt, latestBlockHash) => {
-        console.log(condNumber)
+        
       })
       .on('error', (error) => {
-        console.log(error)
+        
       });    
   }
 
-  async function GetPiggyAccounts(){
-    let qty = await GetQtyAccounts()    
-    console.log(await qty)
+  async function SendEtherToContract(contractAddress, amount){
+    let amountString = (amount).toString()
+    web3.eth.sendTransaction({from: accounts[0], to: contractAddress, value: web3.utils.toWei(amountString, 'ether')  });
+  }
 
-    for (let i = 1; i < qty; i++) {
-      const piggy = await factoryContract.methods.getPiggyBankAddress(i).call()
-      const piggyBalance = await web3.eth.getBalance(piggy)
-      console.log(piggyBalance)
-      console.log(piggy)
-      
+  async function WithDrawEther(address){    
+    var jparse = JSON.stringify(PiggyBank.abi)   
+    var contract = new web3.eth.Contract(JSON.parse(jparse), address)
+
+    contract.methods.withDraw().send({from: accounts[0]})
+  }
+
+  function Botones(item){
+    if(item.owner === accounts[0]){
+      return( 
+   
+        <div>
+          <button className="btn btn-success m-2" onClick={() => SendEtherToContract(item.address, 1)}>Depositar</button>                
+          <button className="btn btn-warning m-2 text-white" onClick={() => WithDrawEther(item.address)}>Retirar</button>
+        </div>)
+    }else{
+      return( 
+   
+        <div>
+          <button className="btn btn-success m-2" onClick={() => SendEtherToContract(item.address, 1)}>Depositar</button>                          
+        </div>)
     }
 
   }
 
-  if(typeof web3 === 'undefined'){
+  if(typeof web3 === 'undefined' ){
+   
     return <div>Loading Web3, accounts, and contract...</div>;
   }
+   
+    return (
+      <div className="App">
 
-  return (
-    <div className="App">
-      <PiggyContext.Provider value={{web3, accounts, factoryContract, bankContract}} >
-        <h1>Piggy Bank</h1>
-        
-        <h2>Smart Contract Example</h2>
-
-        <div>La cantidasd de cuentas creadas es: {qtyAccounts}</div>
-        <AccountsComponents />
-        <div className="container">
-    
-          <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
-        </div>
-      </PiggyContext.Provider>
-    </div>
-  );
-
+        <PiggyContext.Provider value={{web3, accounts, factoryContract, bankContract}} >
+          <h1>Piggy Bank</h1>
+                                         
+         <div className="row">
+            {piggyAccounts.map((item, i) => {              
+              return (
+                <div className="col-lg-4 p-2 m-5" key={i}>
+                  <ul><strong>Address</strong>: {item.address}</ul>
+                  <ul><strong>Owner</strong>: {item.owner}</ul>
+                  <ul><strong>Balance</strong>: {web3.utils.fromWei(item.balance,'ether')} Ether</ul>
+                  <input type="number" className="form-control" placeholder="ETH"/>
+                {Botones(item)}
+                </div>
+              )
+            
+            })}  
+          </div>
+      
+          <AccountsComponents />
+          <div className="container">
+      
+            <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+          </div>
+  
+        </PiggyContext.Provider>
+      </div>
+    )  
 }
 
 export default App;

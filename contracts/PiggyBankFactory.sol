@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity 0.8.0;
 
 import "./PiggyBank.sol";
 
@@ -17,7 +17,7 @@ contract PiggyBankFactory{
     mapping (uint256 => PiggyBank) private  accounts;
     
     function createPiggyBank() public {
-        PiggyBank newPiggyBank = new PiggyBank();
+        PiggyBank newPiggyBank = new PiggyBank(msg.sender);
         require(address(newPiggyBank) != address(0), "El contrato debe desplegarse");
         _piggyAccountsCounter++; 
         accounts[_piggyAccountsCounter] = newPiggyBank;        
