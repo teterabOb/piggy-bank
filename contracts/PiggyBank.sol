@@ -1,6 +1,5 @@
 pragma solidity 0.8.0;
 
-
 contract PiggyBank{
 
     address private contractOwner;
