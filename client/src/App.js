@@ -15,6 +15,7 @@ function App()  {
   const [bankContract, setBContract] = useState(undefined);
   const [factoryContract, setFContract] = useState(undefined);
   const [piggyAccounts, setPiggyAccounts] = useState([]);
+  const [etherToDeposit, setEtherToDeposit] = useState(0);
 
   useEffect(() => {
     const init = async() => {
@@ -42,11 +43,9 @@ function App()  {
         setFContract(factoryContract)       
         
       } catch (error) {
-        // Catch any errors for any of the above operations.
         alert(
           `Failed to load web3, accounts, or contract. Check console for details.`,
         );
-        //console.error(error);
       }
     }
     init();
@@ -109,22 +108,14 @@ function App()  {
     contract.methods.withDraw().send({from: accounts[0]})
   }
 
-  function Botones(item){
+  function Botones(item){    
     if(item.owner === accounts[0]){
       return( 
    
-        <div>
-          <button className="btn btn-success m-2" onClick={() => SendEtherToContract(item.address, 1)}>Depositar</button>                
-          <button className="btn btn-warning m-2 text-white" onClick={() => WithDrawEther(item.address)}>Retirar</button>
-        </div>)
-    }else{
-      return( 
-   
-        <div>
-          <button className="btn btn-success m-2" onClick={() => SendEtherToContract(item.address, 1)}>Depositar</button>                          
+        <div>          
+          <button className="btn btn-warning m-2 text-white" onClick={() => WithDrawEther(item.address)}>Retirar Fondos</button>
         </div>)
     }
-
   }
 
   if(typeof web3 === 'undefined' ){
@@ -136,29 +127,43 @@ function App()  {
       <div className="App">
 
         <PiggyContext.Provider value={{web3, accounts, factoryContract, bankContract}} >
-          <h1>Piggy Bank</h1>
-                                         
-         <div className="row">
+          
+          <div className="container py-2">   
+            <h1 className="mx-2">Piggy Bank</h1>   
+            <button className="btn btn-success mx-5" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+          </div>                 
+         <div className="">
+           <div className="d-flex align-items-center">           
             {piggyAccounts.map((item, i) => {              
               return (
-                <div className="col-lg-4 p-2 m-5" key={i}>
-                  <ul><strong>Address</strong>: {item.address}</ul>
-                  <ul><strong>Owner</strong>: {item.owner}</ul>
-                  <ul><strong>Balance</strong>: {web3.utils.fromWei(item.balance,'ether')} Ether</ul>
-                  <input type="number" className="form-control" placeholder="ETH"/>
+                <div className="border m-2 p-2" key={i}>
+                  <form id={"formCuenta"+ i}>
+                  <div className="form-group">
+                    <label><strong>Address</strong>: {item.address}</label> 
+                  </div>
+                  <div className="form-group">
+                    <label><strong>Owner</strong>: {item.owner}</label>
+                  </div>
+                  <div className="form-group">
+                    <label><strong>Balance Cuenta</strong>: {web3.utils.fromWei(item.balance,'ether')} Ether</label>
+                  </div>                                                                            
                 {Botones(item)}
+                </form>
                 </div>
-              )
-            
-            })}  
+                )            
+              })} 
+            </div> 
           </div>
-      
-          <AccountsComponents />
-          <div className="container">
-      
-            <button className="btn btn-success" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+          <div className="d-flex">
+            <div className="col-lg-4 m-2">
+            <AccountsComponents />
+            </div>
+            <div className="col-lg-4 m-2">
+            <ContactoComponents />  
+            </div>      
+          
           </div>
-  
+
         </PiggyContext.Provider>
       </div>
     )  
