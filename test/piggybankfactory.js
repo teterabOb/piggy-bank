@@ -16,12 +16,11 @@ describe("PiggyBankFactory", function(){
         it('creates piggy bank account', async function() {
           
           const piggyAcc = await this.contratoPiggyFactory.createPiggyBank();
+       
           const counter = await this.contratoPiggyFactory.getPiggyQtyAccounts();
-          const addressAccount = await this.contratoPiggyFactory.getPiggyBankAddress(counter);
-          
+          const addressAccount = await this.contratoPiggyFactory.getPiggyBankAddress(counter);                  
 
           assert(addressAccount != ethers.constants.AddressZero, "La cuenta se ha desplegado correctamente");
-                  
           console.log(`El address de la cuenta es: ${addressAccount}`);
           console.log(`La cantidad de cuentas cradas son : ${counter}`);
           

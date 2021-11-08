@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import PiggyBankFactory from "./contracts/PiggyBankFactory.json";
 import PiggyBank from "./contracts/PiggyBank.json";
 import getWeb3 from "./getWeb3";
-
+import Web3 from "web3";
 import "./App.css";
 import PiggyContext from "./PiggyContext";
 import AccountsComponents from "./AccountsComponent";
@@ -12,35 +12,24 @@ function App()  {
   const [qtyAccounts, setQtyAccounts] = useState(0);  
   const [web3, setWeb3] = useState(undefined);
   const [accounts, setAccounts] = useState(undefined);  
-  const [bankContract, setBContract] = useState(undefined);
+  
   const [factoryContract, setFContract] = useState(undefined);
-  const [piggyAccounts, setPiggyAccounts] = useState([]);
-  const [etherToDeposit, setEtherToDeposit] = useState(0);
+  const [piggyAccounts, setPiggyAccounts] = useState([]);  
 
   useEffect(() => {
-    const init = async() => {
+    const init = async() => {    
       try {
-        const web3 = await getWeb3();
+
+        const web3 = await getWeb3()
         const accounts = await web3.eth.getAccounts();          
-        const networkId = await web3.eth.net.getId();
-
-        const deployedNetwork = PiggyBankFactory.networks[networkId];
-        const deployedNetwork2 = PiggyBank.networks[networkId];
-
-        const factoryContract = new web3.eth.Contract(
-          PiggyBankFactory.abi,
-          deployedNetwork && deployedNetwork.address,
-        );
-
-        const bankContract = new web3.eth.Contract(
-          PiggyBank.abi,
-          deployedNetwork2 && deployedNetwork2.address,
-        );
-  
+        const networkId = await web3.eth.net.getId();        
+        const deployedNetwork = PiggyBankFactory.networks[networkId];        
+        const factoryContract = await new web3.eth.Contract(PiggyBankFactory.abi,'0x3E039CB5B67EB649A6e90c0a44B366435a3babC2');
+          
         setWeb3(web3)
-        setAccounts(accounts)        
-        setBContract(bankContract)
-        setFContract(factoryContract)       
+        setAccounts(accounts)                
+        setFContract(factoryContract)      
+
         
       } catch (error) {
         alert(
@@ -52,13 +41,13 @@ function App()  {
   }, []);
 
   useEffect(() => {
-    const load = async() => {        
-      const qty = await factoryContract.methods.getPiggyQtyAccounts().call();            
-      setQtyAccounts(qty) 
+    const load = async() => {               
+      const qty = await factoryContract.methods.getPiggyQtyAccounts().call();          
+      setQtyAccounts(qty)
    
       let piggyAccountsWithAmount = []
-
-    
+      
+      
       for (let i = 1; i <= qty; i++) {
         const piggy = await factoryContract.methods.getPiggyBankAddress(i).call()
         const piggyBalance = await web3.eth.getBalance(piggy)   
@@ -71,19 +60,18 @@ function App()  {
 
       }
                
-      setPiggyAccounts(piggyAccountsWithAmount)     
+      setPiggyAccounts(piggyAccountsWithAmount)   
+         
       
     }
       if(typeof web3 !== 'undefined'
-          && typeof accounts !== 'undefined'
-          && typeof bankContract !== 'undefined'
+          && typeof accounts !== 'undefined'          
           && typeof factoryContract !== 'undefined'){            
-            load();
-            
+            load();            
           }
-  }, [web3, accounts, bankContract, factoryContract]);
+  }, [web3, accounts, factoryContract]);
 
-  async function CreatePiggyAccount(){
+   const CreatePiggyAccount = async() => {
     await factoryContract.methods.createPiggyBank().send({from: accounts[0]})
       .once('receipt', (receipt) => {
         
@@ -96,12 +84,7 @@ function App()  {
       });    
   }
 
-  async function SendEtherToContract(contractAddress, amount){
-    let amountString = (amount).toString()
-    web3.eth.sendTransaction({from: accounts[0], to: contractAddress, value: web3.utils.toWei(amountString, 'ether')  });
-  }
-
-  async function WithDrawEther(address){    
+  const WithDrawEther = async(address) => {    
     var jparse = JSON.stringify(PiggyBank.abi)   
     var contract = new web3.eth.Contract(JSON.parse(jparse), address)
 
@@ -126,11 +109,12 @@ function App()  {
     return (
       <div className="App">
 
-        <PiggyContext.Provider value={{web3, accounts, factoryContract, bankContract}} >
+        <PiggyContext.Provider value={{web3, accounts, factoryContract}} >
           
           <div className="container py-2">   
-            <h1 className="mx-2">Piggy Bank</h1>   
-            <button className="btn btn-success mx-5" onClick={() => CreatePiggyAccount()}>Crear Cuenta</button>
+            <h1 className="mx-2">Piggy Bank</h1>  
+            <h6 className="mx-2">Tu cuenta: {accounts}</h6>  
+            <button className="btn btn-success mx-5" onClick={() => CreatePiggyAccount()}>Abre tu cuenta Piggy Bank!</button>
           </div>                 
          <div className="">
            <div className="d-flex align-items-center">           

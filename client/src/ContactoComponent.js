@@ -4,10 +4,10 @@ import { useForm } from "react-hook-form"
 
 export default function ContactoComponents(){
     const piggyContext = useContext(PiggyContext);
-    const { web3, accounts, factoryContract, bankContract } = piggyContext;
+    const { web3, accounts, factoryContract } = piggyContext;
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
-
-    const onSubmit = data => {
+        
+    const onSubmit = async (data) => {
         var mail_format = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
         var res =  (data.Email).match(mail_format)
 
@@ -29,14 +29,14 @@ export default function ContactoComponents(){
             var data = `{
                 "to": ${data.Email},
                 "message": ${data.Mensaje},
-                "subject": "Piggy Bank Content"
+                "subject": "Contacto Piggy Bank"
             }`
 
             xhr.send(data)
 
 
         }else{
-            alert("mail NO! valido")
+            alert("mail NO! válido")
         }
     }
 return (
