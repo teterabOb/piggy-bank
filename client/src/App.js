@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react"
 import PiggyBankFactory from "./contracts/PiggyBankFactory.json";
 import PiggyBank from "./contracts/PiggyBank.json";
 import getWeb3 from "./getWeb3";
-import Web3 from "web3";
 import "./App.css";
 import PiggyContext from "./PiggyContext";
 import AccountsComponents from "./AccountsComponent";

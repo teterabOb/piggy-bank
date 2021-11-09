@@ -11,33 +11,33 @@ export default function ContactoComponents(){
         var mail_format = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
         var res =  (data.Email).match(mail_format)
 
-        if(res){
+  
             
             var url = "https://us-central1-piggybank-ece2a.cloudfunctions.net/mailer";
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", url)
+                        
+            let headers = new Headers()
+            headers.append("Accept", "application/json")
+            headers.append("Content-Type", "application/json")
 
-            xhr.setRequestHeader("Accept", "application/json");
-            xhr.setRequestHeader("Content-Type", "application/json");
+            var data = {
+                to: data.Email,
+                message: data.Mensaje,
+                subject : "Contacto Piggy Bank"
+            }
 
-            xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                console.log("status: " + xhr.status);
-                console.log("resp text: " + xhr.responseText);
-            }};
+            let dataJson = JSON.stringify(data)            
 
-            var data = `{
-                "to": ${data.Email},
-                "message": ${data.Mensaje},
-                "subject": "Contacto Piggy Bank"
-            }`
-
-            xhr.send(data)
+            fetch(url, { mode: 'cors',            
+                        method: 'POST',
+                        headers: headers,
+                        body: dataJson
+                        })
+                        .then(r => r.json())
+                        .then(resp => { alert(resp.message) })
+                        .catch(e => {alert("Ocurrió un error al enviar el correo")})
+                        
 
 
-        }else{
-            alert("mail NO! válido")
-        }
     }
 return (
         <div className="container d-flex justify-content-center m-5 p-2 border">
@@ -45,16 +45,18 @@ return (
             <h1>Contacto</h1>
             <div className="form-group">
                 <label>Nombre</label>
-                <input {...register("Nombre", { required: true  })} type="text" className="form-control" id="txtNombre" placeholder="Nombre"/>            
+                <input {...register("Nombre", { required: true  })} type="text" className="form-control" id="txtNombre" placeholder="Nombre"/>   
+                {errors.Nombre && errors.Nombre.type === "required" && <span className="text-danger">Nombre requerido</span>}         
             </div>
             <div className="form-group">
                 <label>E-mail</label>
-                <input {...register("Email", { required: true  })} type="text" className="form-control" id="txtEmail" placeholder="E-mail" />
+                <input {...register("Email", { required: true, pattern: { value: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/} })} type="text" className="form-control" id="txtEmail" placeholder="E-mail" />
+                {errors.Email && errors.Email.type === "required" && <span className="text-danger">Email requerido</span>}         
             </div>
             <div className="form-group">
                 <label>Mensaje</label>
                 <input {...register("Mensaje", { required: true  })}type="text" className="form-control" id="txtMensaje" placeholder="Mensaje" />
-                {errors.exampleRequired && <span>This field is required</span>}
+                {errors.Mensaje && errors.Mensaje.type === "required" && <span className="text-danger">Mensaje requerido</span>}                         
             </div>
                 <input type="submit" className="btn btn-primary m-2" value="Enviar Consulta"/>            
             </form>
