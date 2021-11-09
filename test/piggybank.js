@@ -1,39 +1,57 @@
-//const PiggyBank = require("PiggyBank.sol");
-const ganache = require('ganache-cli')
-const Web3 = require('web3')
+const { expect, assert } = require('chai')
+const { ethers } = require("hardhat");
 
-const web3 = new Web3(ganache.provider());
 
-let piggyBank;
+describe("PiggyBank", function(){
+    let deployer, cuenta1, cuenta2
 
-beforeEach("setup contract for each test", async() => {
-    piggyBank = await PiggyBank.new();
+    beforeEach(async function () {
+        [deployer, cuenta1, cuenta2] = await ethers.getSigners();
+
+        const PiggyBank = await ethers.getContractFactory('PiggyBank', deployer);
+        this.contratoPiggy = await PiggyBank.deploy();
+      });
+      
+      describe("Inicializacion", function(){
+        it.skip('should accept ether', async function() {
+          const tx = await deployer.sendTransaction({ to: this.contratoPiggy.address, value: ethers.utils.parseEther('1') });
+          let balance = await ethers.provider.getBalance(this.contratoPiggy.address);
+  
+          expect(balance).to.eq(ethers.utils.parseEther('1'));
+          console.log(`El contrato tiene: ${ethers.utils.formatEther(balance.toString())}`);
+        }); 
+
+      });
+
+      describe("Transfiere", function(){
+        it.skip('comprueba el owner', async function() {
+          const owner = await this.contratoPiggy.owner();
+      
+          expect(deployer.address).to.eq(owner);
+          console.log(`El deployer es: ${deployer.address}`);
+          console.log(`El owner es: ${owner}`);
+
+        });
+
+      describe("Withdraw ethers", function(){
+        it.skip("should be the owner to withdraw ether", async function() {          
+          await deployer.sendTransaction({to: this.contratoPiggy.address, value: ethers.utils.parseEther('5')})
+
+          const contractFunds = await ethers.provider.getBalance(this.contratoPiggy.address);
+          expect(contractFunds).to.be.gt(0);
+          console.log(`El contrato tiene: ${ethers.utils.formatEther(contractFunds.toString())}`);
+          
+          const ownerFunds =  ethers.utils.formatEther((await ethers.provider.getBalance(deployer.address)).toString())
+                    
+          console.log(`El owner tiene: ${ownerFunds}`);
+                              
+          await this.contratoPiggy.withDraw({from: deployer.address});
+
+          console.log(`El owner ahora tiene: ${ethers.utils.formatEther((await ethers.provider.getBalance(deployer.address)).toString())}`);
+          console.log(`El contrato ahora tiene: ${await ethers.provider.getBalance(this.contratoPiggy.address)}`);
+
+        });
+      });
+
+      });
 });
-
-contract("PiggyBank", accounts => {
-    it("should be deployed", () => {
-        assert.ok(piggyBank.address)
-    });
-    
-    it("should has a owner", async() => {
-        assert.equal(await piggyBank.owner(), accounts[0]);
-    });
-
-    it("should accepts funds", async() => {        
-        await piggyBank.send(web3.utils.toWei('2', 'ether'), accounts[1]);
-
-        const piggyBankAddress = await piggyBank.address;
-        let piggyBalance = web3.eth.getBalance(piggyBankAddress)
-        let accountBalance = web3.eth.getBalance(accounts[0])
-        console.log("piggyBalance");
-        //assert.equal(web3.eth.getBalance(piggyBankAddress), web3.utils.toWei('2', 'ether'));
-        assert(piggyBalance == 0);
-     
-    });
-
-    it("should be owner to withdraw amount", async () => {
-        const PiggyBankInstance = await PiggyBank.deployed();
-        await PiggyBankInstance.withDraw({ from: accounts[0] });
-    });
-
-})
